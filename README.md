@@ -25,8 +25,8 @@ Les étudiants utilisent souvent plusieurs réseaux sociaux et messageries pour 
 - **Backend :** PHP 8 avec une API REST ;
 - **Base de données :** MariaDB/MySQL ;
 - **Communication :** HTTP et JSON ;
-- **Serveur :** Apache ;
-- **Gestion du code :** Git et GitHub.
+- **Serveur :** ... ;
+- **Gestion du code :** VSCode et GitHub.
 
 ## État du projet
 
