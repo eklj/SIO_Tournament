@@ -30,7 +30,7 @@ Les étudiants utilisent souvent plusieurs réseaux sociaux et messageries pour 
 
 ## État du projet
 
-Analyse et conception en cours. Les missions 5 et 7 du TP ne sont pas incluses à la demande de l'étudiant.
+en cour
 
 ## Documentation
 
