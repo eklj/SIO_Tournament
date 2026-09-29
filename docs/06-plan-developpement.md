@@ -4,8 +4,7 @@
 
 - [ ] Créer l'arborescence du frontend et du backend.
 - [ ] Initialiser Git et créer le premier commit.
-- [ ] Configurer Apache, PHP et MariaDB.
-- [ ] Créer un fichier `.env` local non suivi par Git.
+- [ ] Configurer PHP et MySQL.
 
 ## Étape 2 - Créer les données
 
