@@ -1,11 +1,315 @@
+<!--
+SIO TOURNAMENT - Landing Page
+========================================================
+IMAGES NÉCESSAIRES / PLACEHOLDERS À FOURNIR
+
+Assets déjà présents et utilisés :
+- frontend/Assets/General/Banner_SIO_Tournament.png
+- frontend/Assets/General/SIO_Tournament_logo.png
+
+Images optionnelles à ajouter pour remplacer les placeholders :
+- frontend/Assets/Games/tournament_rumble.jpg
+- frontend/Assets/Games/tournament_skyarena.jpg
+- frontend/Assets/Games/tournament_tactical.jpg
+- frontend/Assets/Games/game_fighting.jpg
+- frontend/Assets/Games/game_teamheroes.jpg
+- frontend/Assets/Games/game_carsports.jpg
+- frontend/Assets/Games/game_sandbox.jpg
+- frontend/Assets/Games/game_tactical.jpg
+- frontend/Assets/Games/game_fantasy.jpg
+- frontend/Assets/General/news_rumble.jpg
+- frontend/Assets/General/news_ranking.jpg
+- frontend/Assets/General/news_community.jpg
+
+IMPORTANT :
+Les blocs ci-dessus fonctionnent même sans ces fichiers grâce à des placeholders CSS.
+Tu peux remplacer chaque placeholder simplement en ajoutant les fichiers aux chemins indiqués.
+========================================================
+-->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="description" content="SIO Tournament - plateforme e-sport pour les étudiants en BTS SIO">
+    <title>SIO Tournament</title>
+
+    <link rel="stylesheet" href="styles/general.css">
 </head>
+
 <body>
-    
+
+<header>
+    <div class="container nav">
+        <a class="brand" href="#" aria-label="Accueil SIO Tournament">
+            <img src="Assets/General/SIO_Tournament_logo.png" alt="SIO Tournament">
+        </a>
+
+        <nav class="nav-links" aria-label="Navigation principale">
+            <a class="active" href="#">Home</a>
+            <a href="#tournaments">Tournaments</a>
+            <a href="#games">Games</a>
+            <a href="#leaderboard">Rankings</a>
+            <a href="#community">Community</a>
+        </nav>
+
+        <div class="nav-actions">
+            <div class="search-wrap" id="searchWrap">
+                <button class="icon-btn search-toggle" id="searchToggle" aria-label="Ouvrir la recherche" aria-expanded="false">
+                    <span aria-hidden="true">⌕</span>
+                </button>
+
+                <input
+                    id="siteSearch"
+                    class="search-input"
+                    type="search"
+                    placeholder="Rechercher..."
+                    autocomplete="off"
+                    aria-label="Rechercher sur SIO Tournament"
+                >
+            </div>
+
+            <a class="primary-btn" href="../backend/login.php">👤 Sign In</a>
+        </div>
+    </div>
+</header>
+
+<section class="hero" aria-label="Bannière SIO Tournament">
+    <img src="Assets/General/Banner_SIO_Tournament.png" alt="SIO Tournament - Play, Compete, Belong">
+</section>
+
+<main class="container">
+
+    <section class="section" id="tournaments">
+        <div class="section-head">
+            <h2 class="section-title"><span class="emoji">🏆</span>Upcoming Tournaments</h2>
+            <a class="section-link" href="#">View All →</a>
+        </div>
+
+        <div class="tournament-grid">
+            <article class="card tournament-card">
+                <div class="bg"></div>
+                <div class="tournament-content">
+                    <span class="pill red">Live Soon</span>
+                    <h3>SIO Rumble Cup</h3>
+                    <p>5v5 Team Championship</p>
+                    <div class="meta">
+                        <span>▣ Apr 26 – Apr 28, 2026</span>
+                        <span class="prize">🏆 10,000 Prize Pool</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card tournament-card">
+                <div class="bg"></div>
+                <div class="tournament-content">
+                    <span class="pill blue">Registration Open</span>
+                    <h3>Sky Arena Series</h3>
+                    <p>3v3 Competitive League</p>
+                    <div class="meta">
+                        <span>▣ May 10 – May 12, 2026</span>
+                        <span class="prize">🏆 7,500 Prize Pool</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card tournament-card">
+                <div class="bg"></div>
+                <div class="tournament-content">
+                    <span class="pill gray">Coming Soon</span>
+                    <h3>Tactical Elite</h3>
+                    <p>Squad Battle Tournament</p>
+                    <div class="meta">
+                        <span>▣ May 24 – May 26, 2026</span>
+                        <span class="prize">🏆 12,000 Prize Pool</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="section" id="games">
+        <div class="section-head">
+            <h2 class="section-title"><span class="emoji">🎮</span>Popular Games</h2>
+            <a class="section-link" href="#">View All Games →</a>
+        </div>
+
+        <div class="games-grid">
+            <article class="card game-card">
+                <div class="bg"></div>
+                <div class="game-info">
+                    <strong>🥊 Fighting</strong>
+                    <span>Tournaments</span>
+                </div>
+            </article>
+
+            <article class="card game-card">
+                <div class="bg"></div>
+                <div class="game-info">
+                    <strong>👥 Team Heroes</strong>
+                    <span>Tournaments</span>
+                </div>
+            </article>
+
+            <article class="card game-card">
+                <div class="bg"></div>
+                <div class="game-info">
+                    <strong>⚽ Car Sports</strong>
+                    <span>Tournaments</span>
+                </div>
+            </article>
+
+            <article class="card game-card">
+                <div class="bg"></div>
+                <div class="game-info">
+                    <strong>⛏ Sandbox</strong>
+                    <span>Tournaments</span>
+                </div>
+            </article>
+
+            <article class="card game-card">
+                <div class="bg"></div>
+                <div class="game-info">
+                    <strong>🎯 Tactical Shooter</strong>
+                    <span>Tournaments</span>
+                </div>
+            </article>
+
+            <article class="card game-card">
+                <div class="bg"></div>
+                <div class="game-info">
+                    <strong>🔥 Fantasy RPG</strong>
+                    <span>Tournaments</span>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="section lower-grid">
+
+        <article class="card panel" id="leaderboard">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">👑 Leaderboard</h2>
+                </div>
+                <div class="tabs">
+                    <button class="tab active">Global</button>
+                    <button class="tab">This Month</button>
+                    <button class="tab">All Games</button>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Player</th>
+                        <th>Rating</th>
+                        <th>Wins</th>
+                        <th>Win Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="rank">1</td>
+                        <td>NovaZen</td>
+                        <td class="rating">2,450</td>
+                        <td>182</td>
+                        <td>78%</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">2</td>
+                        <td>ShadowKira</td>
+                        <td class="rating">2,380</td>
+                        <td>170</td>
+                        <td>74%</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">3</td>
+                        <td>RogueX</td>
+                        <td class="rating">2,310</td>
+                        <td>165</td>
+                        <td>71%</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Eclipse</td>
+                        <td>2,280</td>
+                        <td>160</td>
+                        <td>69%</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>ByteStorm</td>
+                        <td>2,190</td>
+                        <td>152</td>
+                        <td>66%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+
+        <article class="card panel" id="community">
+            <div class="panel-head">
+                <h2 class="panel-title">📣 News & Announcements</h2>
+                <a class="section-link" href="#">View All News →</a>
+            </div>
+
+            <div class="news-list">
+
+                <div class="news-item">
+                    <div class="news-thumb"></div>
+                    <div class="news-copy">
+                        <h4>SIO Rumble Cup Announced!</h4>
+                        <p>Notre prochain tournoi 5v5 arrive bientôt. Prépare ton équipe et inscris-toi.</p>
+                    </div>
+                    <span class="tag blue">Tournament</span>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-thumb"></div>
+                    <div class="news-copy">
+                        <h4>New Ranking Season Starts</h4>
+                        <p>Une nouvelle saison débute : grimpe dans le classement global.</p>
+                    </div>
+                    <span class="tag purple">Updates</span>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-thumb"></div>
+                    <div class="news-copy">
+                        <h4>Join the SIO Community</h4>
+                        <p>Trouve des coéquipiers, rejoins une équipe et participe aux prochains événements.</p>
+                    </div>
+                    <span class="tag green">Community</span>
+                </div>
+
+            </div>
+        </article>
+
+    </section>
+
+</main>
+
+<div class="search-backdrop" id="searchBackdrop"></div>
+
+<section class="search-results" id="searchResults" aria-live="polite" aria-label="Résultats de recherche">
+    <div class="search-results-header">
+        <h3>Résultats de recherche</h3>
+        <button class="search-close" id="searchClose" aria-label="Fermer">✕</button>
+    </div>
+    <div class="search-results-body" id="searchResultsBody">
+        <div class="search-empty">Commence à saisir pour rechercher un tournoi, un jeu ou une rubrique.</div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        SIO Tournament — Plateforme e-sport BTS SIO
+    </div>
+</footer>
+
+<script src="scripts/leaderboard-tabs.js" defer></script>
+    <script src="scripts/search.js" defer></script>
 </body>
 </html>
