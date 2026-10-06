@@ -1,47 +1,120 @@
 <?php
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/connexion.php';
-$error = '';
-$pseudo = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $pseudo = is_string($_POST['pseudo'] ?? null) ? trim($_POST['pseudo']) : '';
-    $password = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
-    $csrf = is_string($_POST['csrf'] ?? null) ? $_POST['csrf'] : '';
-    if (!hash_equals($_SESSION['csrf'], $csrf)) {
-        $error = 'Formulaire expiré. Recharge la page et réessaie.';
-    } else {
-        try {
-            $stmt = $pdo->prepare('SELECT id_utilisateur, pseudo, mot_de_passe, role_plateforme FROM utilisateur WHERE pseudo = ? AND actif = TRUE');
-            $stmt->execute([$pseudo]);
-            $utilisateur = $stmt->fetch();
-            if ($utilisateur && password_verify($password, $utilisateur['mot_de_passe'])) {
-                session_regenerate_id(true);
-                $_SESSION['id_utilisateur'] = (int) $utilisateur['id_utilisateur'];
-                $_SESSION['pseudo'] = $utilisateur['pseudo'];
-                $_SESSION['role_plateforme'] = $utilisateur['role_plateforme'];
-                $_SESSION['csrf'] = bin2hex(random_bytes(32));
-                header('Location: ../frontend/index.html', true, 303);
-                exit;
-            }
-            $error = 'Pseudo ou mot de passe incorrect.';
-        } catch (PDOException $e) {
-            error_log('Connexion utilisateur : ' . $e->getMessage());
-            $error = 'Connexion impossible. Réessaie plus tard.';
-        }
-    }
+declare(strict_types=1);
+
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+
+session_set_cookie_params([
+    'httponly' => true,
+    'secure' => isset($_SERVER['HTTPS']),
+    'samesite' => 'Lax'
+]);
+
+session_start();
+
+function reponseJson(array $donnees, int $statut = 200): never
+{
+    http_response_code($statut);
+
+    echo json_encode(
+        $donnees,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
+
+    exit;
 }
-?>
-<!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Connexion — SIO Tournament</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="conteneur"><h1>Connexion</h1>
-<?php if ($error): ?><div class="messages erreur" role="alert"><?= h($error) ?></div><?php endif; ?>
-<form method="post" action="login.php">
-<input type="hidden" name="csrf" value="<?= h($_SESSION['csrf']) ?>">
-<label for="pseudo">Pseudo</label><input id="pseudo" name="pseudo" value="<?= h($pseudo) ?>" autocomplete="username" required>
-<label for="password">Mot de passe</label><input type="password" id="password" name="password" autocomplete="current-password" required>
-<button type="submit">Se connecter</button>
-</form>
-<p>Pas de compte ? <a href="signin.php">Inscrivez-vous</a>.</p>
-<p><a href="../frontend/index.html">Accueil</a></p>
-</div></body></html>
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Allow: POST');
+
+    reponseJson([
+        'success' => false,
+        'message' => 'Méthode HTTP non autorisée.'
+    ], 405);
+}
+
+$typeContenu = $_SERVER['CONTENT_TYPE'] ?? '';
+
+if (!str_contains(strtolower($typeContenu), 'application/json')) {
+    reponseJson([
+        'success' => false,
+        'message' => 'Le contenu doit être envoyé au format JSON.'
+    ], 415);
+}
+
+$donnees = json_decode(file_get_contents('php://input'), true);
+
+if (!is_array($donnees)) {
+    reponseJson([
+        'success' => false,
+        'message' => 'Corps JSON invalide.'
+    ], 400);
+}
+
+$pseudo = trim((string) ($donnees['pseudo'] ?? ''));
+$motDePasse = (string) (
+    $donnees['mot_de_passe']
+    ?? $donnees['password']
+    ?? ''
+);
+
+if ($pseudo === '' || $motDePasse === '') {
+    reponseJson([
+        'success' => false,
+        'message' => 'Le pseudo et le mot de passe sont obligatoires.'
+    ], 422);
+}
+
+require_once __DIR__ . '/connexion.php';
+
+try {
+    $requete = $pdo->prepare(
+        'SELECT
+            id_utilisateur,
+            pseudo,
+            email,
+            mot_de_passe,
+            role_plateforme
+         FROM utilisateur
+         WHERE pseudo = :pseudo
+           AND actif = TRUE'
+    );
+
+    $requete->execute(['pseudo' => $pseudo]);
+    $utilisateur = $requete->fetch();
+
+    if (
+        !$utilisateur
+        || !password_verify($motDePasse, $utilisateur['mot_de_passe'])
+    ) {
+        reponseJson([
+            'success' => false,
+            'message' => 'Pseudo ou mot de passe incorrect.'
+        ], 401);
+    }
+
+    session_regenerate_id(true);
+
+    $_SESSION['id_utilisateur'] = (int) $utilisateur['id_utilisateur'];
+    $_SESSION['id_joueur'] = (int) $utilisateur['id_utilisateur'];
+    $_SESSION['pseudo'] = $utilisateur['pseudo'];
+    $_SESSION['role_plateforme'] = $utilisateur['role_plateforme'];
+
+    reponseJson([
+        'success' => true,
+        'message' => 'Connexion réussie.',
+        'user' => [
+            'id_utilisateur' => (int) $utilisateur['id_utilisateur'],
+            'pseudo' => $utilisateur['pseudo'],
+            'email' => $utilisateur['email'],
+            'role_plateforme' => $utilisateur['role_plateforme']
+        ]
+    ]);
+} catch (PDOException $exception) {
+    error_log('API login : ' . $exception->getMessage());
+
+    reponseJson([
+        'success' => false,
+        'message' => 'Une erreur interne est survenue.'
+    ], 500);
+}

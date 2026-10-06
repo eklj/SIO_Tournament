@@ -1,80 +1,143 @@
 <?php
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/connexion.php';
-$erreurs = [];
-$succes = '';
-$valeurs = ['nom' => '', 'prenom' => '', 'pseudo' => '', 'email' => ''];
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach ($valeurs as $champ => $_) {
-        $valeurs[$champ] = is_string($_POST[$champ] ?? null) ? trim($_POST[$champ]) : '';
-    }
-    $mdp = is_string($_POST['mot_de_passe'] ?? null) ? $_POST['mot_de_passe'] : '';
-    $confirmation = is_string($_POST['confirmation'] ?? null) ? $_POST['confirmation'] : '';
-    $csrf = is_string($_POST['csrf'] ?? null) ? $_POST['csrf'] : '';
-    if (!hash_equals($_SESSION['csrf'], $csrf)) {
-        $erreurs[] = 'Formulaire expiré. Recharge la page et réessaie.';
-    }
-    foreach ($valeurs as $valeur) {
-        if ($valeur === '') {
-            $erreurs[] = 'Tous les champs sont obligatoires.';
-            break;
-        }
-    }
-    foreach (['nom' => 100, 'prenom' => 100, 'pseudo' => 50, 'email' => 255] as $champ => $max) {
-        $longueur = preg_match_all('/./us', $valeurs[$champ]);
-        if ($longueur === false) {
-            $erreurs[] = "Le champ $champ contient un texte invalide.";
-        } elseif ($longueur > $max) {
-            $erreurs[] = "Le champ $champ est trop long.";
-        }
-    }
-    if (!filter_var($valeurs['email'], FILTER_VALIDATE_EMAIL)) {
-        $erreurs[] = "L'adresse email n'est pas valide.";
-    }
-    // PASSWORD_BCRYPT limite le mot de passe à 72 octets.
-    if (strlen($mdp) < 8 || strlen($mdp) > 72) {
-        $erreurs[] = 'Le mot de passe doit contenir entre 8 et 72 octets.';
-    }
-    if ($mdp !== $confirmation) {
-        $erreurs[] = 'Les mots de passe ne correspondent pas.';
-    }
-    if (!$erreurs) {
-        try {
-            $stmt = $pdo->prepare('INSERT INTO utilisateur (nom, prenom, pseudo, email, mot_de_passe) VALUES (:nom, :prenom, :pseudo, :email, :mot_de_passe)');
-            $stmt->execute($valeurs + ['mot_de_passe' => password_hash($mdp, PASSWORD_BCRYPT)]);
-            $_SESSION['inscription_succes'] = 'Inscription réussie. Tu peux maintenant te connecter.';
-            header('Location: signin.php', true, 303);
-            exit;
-        } catch (PDOException $e) {
-            if ($e->getCode() === '23505') {
-                $erreurs[] = 'Ce pseudo ou cet email est déjà utilisé.';
-            } else {
-                error_log('Inscription : ' . $e->getMessage());
-                $erreurs[] = "L'inscription a échoué. Réessaie plus tard.";
-            }
-        }
-    }
+declare(strict_types=1);
+
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+
+function reponseJson(array $donnees, int $statut = 200): never
+{
+    http_response_code($statut);
+
+    echo json_encode(
+        $donnees,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
+
+    exit;
 }
-$succes = $_SESSION['inscription_succes'] ?? '';
-unset($_SESSION['inscription_succes']);
-?>
-<!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Inscription — SIO Tournament</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="conteneur">
-<h1>Créer un compte</h1>
-<?php if ($erreurs): ?><div class="messages erreur" role="alert"><ul><?php foreach ($erreurs as $erreur): ?><li><?= h($erreur) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
-<?php if ($succes): ?><div class="messages succes" role="status"><?= h($succes) ?></div><?php endif; ?>
-<form method="post" action="signin.php">
-<input type="hidden" name="csrf" value="<?= h($_SESSION['csrf']) ?>">
-<label for="nom">Nom</label><input id="nom" name="nom" maxlength="100" value="<?= h($valeurs['nom']) ?>" autocomplete="family-name" required>
-<label for="prenom">Prénom</label><input id="prenom" name="prenom" maxlength="100" value="<?= h($valeurs['prenom']) ?>" autocomplete="given-name" required>
-<label for="pseudo">Pseudo</label><input id="pseudo" name="pseudo" maxlength="50" value="<?= h($valeurs['pseudo']) ?>" autocomplete="username" required>
-<label for="email">Email</label><input type="email" id="email" name="email" maxlength="255" value="<?= h($valeurs['email']) ?>" autocomplete="email" required>
-<label for="mot_de_passe">Mot de passe</label><input type="password" id="mot_de_passe" name="mot_de_passe" minlength="8" autocomplete="new-password" required>
-<label for="confirmation">Confirmer le mot de passe</label><input type="password" id="confirmation" name="confirmation" minlength="8" autocomplete="new-password" required>
-<button type="submit">S'inscrire</button>
-</form>
-<p>Déjà un compte ? <a href="login.php">Se connecter</a></p>
-<p><a href="../frontend/index.html">Accueil</a></p>
-</div></body></html>
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Allow: POST');
+
+    reponseJson([
+        'success' => false,
+        'message' => 'Méthode HTTP non autorisée.'
+    ], 405);
+}
+
+$typeContenu = $_SERVER['CONTENT_TYPE'] ?? '';
+
+if (!str_contains(strtolower($typeContenu), 'application/json')) {
+    reponseJson([
+        'success' => false,
+        'message' => 'Le contenu doit être envoyé au format JSON.'
+    ], 415);
+}
+
+$donnees = json_decode(file_get_contents('php://input'), true);
+
+if (!is_array($donnees)) {
+    reponseJson([
+        'success' => false,
+        'message' => 'Corps JSON invalide.'
+    ], 400);
+}
+
+$nom = trim((string) ($donnees['nom'] ?? ''));
+$prenom = trim((string) ($donnees['prenom'] ?? ''));
+$pseudo = trim((string) ($donnees['pseudo'] ?? ''));
+$email = strtolower(trim((string) ($donnees['email'] ?? '')));
+$motDePasse = (string) ($donnees['mot_de_passe'] ?? '');
+$confirmation = (string) ($donnees['confirmation'] ?? '');
+
+$erreurs = [];
+
+if (
+    $nom === ''
+    || $prenom === ''
+    || $pseudo === ''
+    || $email === ''
+    || $motDePasse === ''
+    || $confirmation === ''
+) {
+    $erreurs[] = 'Tous les champs sont obligatoires.';
+}
+
+if (strlen($nom) > 100) {
+    $erreurs[] = 'Le nom est trop long.';
+}
+
+if (strlen($prenom) > 100) {
+    $erreurs[] = 'Le prénom est trop long.';
+}
+
+if (strlen($pseudo) < 3 || strlen($pseudo) > 50) {
+    $erreurs[] = 'Le pseudo doit contenir entre 3 et 50 caractères.';
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $erreurs[] = "L'adresse email n'est pas valide.";
+}
+
+if (strlen($motDePasse) < 8 || strlen($motDePasse) > 72) {
+    $erreurs[] = 'Le mot de passe doit contenir entre 8 et 72 caractères.';
+}
+
+if ($motDePasse !== $confirmation) {
+    $erreurs[] = 'Les mots de passe ne correspondent pas.';
+}
+
+if ($erreurs !== []) {
+    reponseJson([
+        'success' => false,
+        'message' => 'Les données envoyées sont invalides.',
+        'errors' => array_values(array_unique($erreurs))
+    ], 422);
+}
+
+require_once __DIR__ . '/connexion.php';
+
+try {
+    $requete = $pdo->prepare(
+        'INSERT INTO utilisateur
+            (nom, prenom, pseudo, email, mot_de_passe)
+         VALUES
+            (:nom, :prenom, :pseudo, :email, :mot_de_passe)
+         RETURNING id_utilisateur, pseudo, email, role_plateforme'
+    );
+
+    $requete->execute([
+        'nom' => $nom,
+        'prenom' => $prenom,
+        'pseudo' => $pseudo,
+        'email' => $email,
+        'mot_de_passe' => password_hash($motDePasse, PASSWORD_BCRYPT)
+    ]);
+
+    $utilisateur = $requete->fetch();
+
+    reponseJson([
+        'success' => true,
+        'message' => 'Compte créé avec succès.',
+        'user' => [
+            'id_utilisateur' => (int) $utilisateur['id_utilisateur'],
+            'pseudo' => $utilisateur['pseudo'],
+            'email' => $utilisateur['email'],
+            'role_plateforme' => $utilisateur['role_plateforme']
+        ]
+    ], 201);
+} catch (PDOException $exception) {
+    if ($exception->getCode() === '23505') {
+        reponseJson([
+            'success' => false,
+            'message' => 'Ce pseudo ou cet email est déjà utilisé.'
+        ], 409);
+    }
+
+    error_log('API signin : ' . $exception->getMessage());
+
+    reponseJson([
+        'success' => false,
+        'message' => "Une erreur interne est survenue pendant l'inscription."
+    ], 500);
+}
