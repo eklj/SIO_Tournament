@@ -2,22 +2,6 @@
  * SIO Tournament
  * Fichier : signin.js
  * Rôle : envoyer le formulaire d'inscription à l'API PHP signin.php.
- *
- * CONTRAT ATTENDU :
- * POST ../backend/signin.php
- *
- * Réponse JSON succès :
- * {
- *   "success": true,
- *   "message": "Inscription réussie."
- * }
- *
- * Réponse JSON erreur :
- * {
- *   "success": false,
- *   "message": "...",
- *   "errors": ["..."]
- * }
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -32,13 +16,25 @@ document.addEventListener("DOMContentLoaded", () => {
         message.className = `auth-message visible ${type}`;
     }
 
+    function clearMessage() {
+        message.textContent = "";
+        message.className = "auth-message";
+    }
+
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
+        clearMessage();
 
-        const password = form.elements["mot_de_passe"].value;
-        const confirmation = form.elements["confirmation"].value;
+        const payload = {
+            nom: form.elements["nom"].value.trim(),
+            prenom: form.elements["prenom"].value.trim(),
+            pseudo: form.elements["pseudo"].value.trim(),
+            email: form.elements["email"].value.trim(),
+            mot_de_passe: form.elements["mot_de_passe"].value,
+            confirmation: form.elements["confirmation"].value
+        };
 
-        if (password !== confirmation) {
+        if (payload.mot_de_passe !== payload.confirmation) {
             showMessage("Les mots de passe ne correspondent pas.");
             return;
         }
@@ -49,12 +45,19 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch("../backend/signin.php", {
                 method: "POST",
-                body: new FormData(form),
                 credentials: "same-origin",
                 headers: {
-                    "Accept": "application/json"
-                }
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
             });
+
+            const contentType = response.headers.get("content-type") || "";
+
+            if (!contentType.includes("application/json")) {
+                throw new Error("signin.php n'a pas retourné du JSON.");
+            }
 
             const result = await response.json();
 
@@ -68,11 +71,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            showMessage(result.message || "Inscription réussie.", "success");
+            showMessage(result.message || "Compte créé avec succès.", "success");
 
             window.setTimeout(() => {
                 window.location.href = "login.html";
-            }, 900);
+            }, 800);
         } catch (error) {
             console.error("Erreur inscription :", error);
             showMessage("Impossible de contacter l'API d'inscription.");

@@ -2,26 +2,6 @@
  * SIO Tournament
  * Fichier : session.js
  * Rôle : synchroniser la navbar avec la session PHP.
- *
- * ENDPOINT ATTENDU :
- * GET ../backend/session.php
- *
- * Exemple connecté :
- * {
- *   "authenticated": true,
- *   "user": {
- *     "id": 1,
- *     "pseudo": "Adam",
- *     "role": "joueur"
- *   }
- * }
- *
- * Exemple déconnecté :
- * {
- *   "authenticated": false
- * }
- *
- * Si session.php n'existe pas encore, la page garde simplement "Sign In".
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -34,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const response = await fetch("../backend/session.php", {
             method: "GET",
             credentials: "same-origin",
+            cache: "no-store",
             headers: {
                 "Accept": "application/json"
             }
@@ -43,13 +24,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const result = await response.json();
 
-        if (!result.authenticated || !result.user) return;
+        if (!result.authenticated || !result.user) {
+            authButtonText.textContent = "Sign In";
+            authButton.href = "login.html";
+            return;
+        }
 
         authButtonText.textContent = result.user.pseudo || "Compte";
         authButton.href = "#";
-        authButton.setAttribute("title", "Compte connecté");
+        authButton.dataset.authenticated = "true";
+        authButton.setAttribute("title", `Connecté en tant que ${result.user.pseudo}`);
     } catch (error) {
-        // session.php peut ne pas encore exister : aucune erreur bloquante.
-        console.debug("Session API indisponible :", error);
+        console.debug("API session indisponible :", error);
     }
 });
