@@ -10,18 +10,15 @@
     <main class="auth-shell">
         <a class="auth-back" href="index.html">← Retour à l'accueil</a>
 
+        <img class="auth-logo" src="Assets/General/SIO_Tournament_logo.png" alt="SIO Tournament">
+
         <section class="auth-card">
-            <div class="auth-card-header">
-                <h1>Créer un compte</h1>
-            </div>
+            <h1>Créer un compte</h1>
+            <p class="auth-subtitle">Crée ton profil pour rejoindre les tournois.</p>
 
-            <div class="auth-card-body">
-                <p class="auth-subtitle">Crée ton profil pour rejoindre les tournois.</p>
+            <div id="signinMessage" class="auth-message" role="alert" aria-live="polite"></div>
 
-                <div id="signinMessage" class="auth-message" role="alert" aria-live="polite"></div>
-
-                <form id="signinForm" class="auth-form">
-                    <div class="auth-grid">
+            <form id="signinForm" class="auth-form">
                 <div class="auth-field">
                     <label for="nom">Nom</label>
                     <input id="nom" name="nom" maxlength="100" autocomplete="family-name" required>
@@ -52,17 +49,14 @@
                     <input type="password" id="confirmation" name="confirmation" minlength="8" autocomplete="new-password" required>
                 </div>
 
-                    </div>
+                <button id="signinSubmit" class="auth-submit" type="submit">
+                    S'inscrire
+                </button>
+            </form>
 
-                    <button id="signinSubmit" class="auth-submit" type="submit">
-                        S'inscrire
-                    </button>
-                </form>
-
-                <div class="auth-links">
-                    <span>Déjà un compte ?</span>
-                    <a href="login.html">Se connecter</a>
-                </div>
+            <div class="auth-links">
+                <span>Déjà un compte ?</span>
+                <a href="login.html">Se connecter</a>
             </div>
         </section>
     </main>

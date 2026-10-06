@@ -135,8 +135,8 @@
         }
 
         .icon-btn{
-            width:54px;
-            height: 54px;
+            width:42px;
+            height:42px;
             min-width:42px;
             min-height:42px;
             padding:0;
@@ -577,7 +577,7 @@
             z-index:130;
             display:flex;
             align-items:center;
-            justify-content:center;
+            justify-content:flex-start;
             height:42px;
             min-height:42px;
             margin:0;
@@ -597,21 +597,23 @@
         }
 
         .search-wrap .icon-btn{
-            flex:0 0 42px;
-            width:42px;
-            height:42px;
+            flex:0 0 40px;
+            width:40px;
+            height:40px;
             border:0;
             background:transparent;
         }
 
 
-        .search-wrap .icon-btn span{
-            font-size:1.6rem;
+        .search-toggle{
+            font-size:1.35rem;
+            font-weight:700;
+        }
+
+        .search-toggle span{
+            display:block;
             line-height:1;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            transform: translateY(-3px);
+            transform:translateY(-1px);
         }
 
         .search-input{
