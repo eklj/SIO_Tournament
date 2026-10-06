@@ -1,3 +1,27 @@
+/**
+ * SIO Tournament
+ * Fichier : login.js
+ * Rôle : envoyer le formulaire de connexion à l'API PHP login.php.
+ *
+ * CONTRAT ATTENDU :
+ * POST ../backend/login.php
+ * Réponse JSON succès :
+ * {
+ *   "success": true,
+ *   "user": {
+ *     "id": 1,
+ *     "pseudo": "Adam",
+ *     "role": "joueur"
+ *   }
+ * }
+ *
+ * Réponse JSON erreur :
+ * {
+ *   "success": false,
+ *   "message": "Pseudo ou mot de passe incorrect."
+ * }
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("loginForm");
     const message = document.getElementById("loginMessage");
@@ -13,32 +37,18 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        const donnees = new FormData(form);
-
         submit.disabled = true;
         submit.textContent = "Connexion...";
-        message.textContent = "";
-        message.className = "auth-message";
 
         try {
             const response = await fetch("../backend/login.php", {
                 method: "POST",
+                body: new FormData(form),
                 credentials: "same-origin",
                 headers: {
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    pseudo: donnees.get("pseudo"),
-                    mot_de_passe: donnees.get("password")
-                })
+                    "Accept": "application/json"
+                }
             });
-
-            const contentType = response.headers.get("content-type") || "";
-
-            if (!contentType.includes("application/json")) {
-                throw new Error("login.php n'a pas retourné du JSON.");
-            }
 
             const result = await response.json();
 
