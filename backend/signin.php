@@ -1,95 +1,81 @@
 <?php
 session_start();
-require "connexion.php";
-
+require_once __DIR__ . '/connexion.php';
+$_SESSION['csrf'] ??= bin2hex(random_bytes(32));
 $erreurs = [];
-$succes = "Inscription réussie. Tu peux maintenant te connecter.";
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $nom = trim($_POST["nom"]);
-    $email = trim($_POST["email"]);
-    $mot_de_passe = $_POST["mot_de_passe"];
-    $confirmation = $_POST["confirmation"];
-
-    // Validation
-    if (empty($nom) || empty($email) || empty($mot_de_passe) || empty($confirmation)) {
-        $erreurs[] = "Tous les champs sont obligatoires.";
+$succes = '';
+$valeurs = ['nom' => '', 'prenom' => '', 'pseudo' => '', 'email' => ''];
+function h(string $valeur): string {
+    return htmlspecialchars($valeur, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    foreach ($valeurs as $champ => $_) {
+        $valeurs[$champ] = is_string($_POST[$champ] ?? null) ? trim($_POST[$champ]) : '';
     }
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $erreurs[] = "L'adresse email n'est pas valide.";
+    $mdp = is_string($_POST['mot_de_passe'] ?? null) ? $_POST['mot_de_passe'] : '';
+    $confirmation = is_string($_POST['confirmation'] ?? null) ? $_POST['confirmation'] : '';
+    $csrf = is_string($_POST['csrf'] ?? null) ? $_POST['csrf'] : '';
+    if (!hash_equals($_SESSION['csrf'], $csrf)) {
+        $erreurs[] = 'Formulaire expiré. Recharge la page et réessaie.';
     }
-
-    if (strlen($mot_de_passe) < 8) {
-        $erreurs[] = "Le mot de passe doit contenir au moins 8 caractères.";
-    }
-
-    if ($mot_de_passe !== $confirmation) {
-        $erreurs[] = "Les mots de passe ne correspondent pas.";
-    }
-
-    // Vérifier si l'email existe déjà
-    if (empty($erreurs)) {
-        $stmt = $pdo->prepare("SELECT id FROM utilisateurs WHERE email = ?");
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
-            $erreurs[] = "Cet email est déjà utilisé.";
+    foreach ($valeurs as $valeur) {
+        if ($valeur === '') {
+            $erreurs[] = 'Tous les champs sont obligatoires.';
+            break;
         }
     }
-
-    // Insertion en base
-    if (empty($erreurs)) {
-        $hash = password_hash($mot_de_passe, PASSWORD_DEFAULT);
-
-        $stmt = $pdo->prepare("INSERT INTO utilisateurs (nom, email, mot_de_passe) VALUES (?, ?, ?)");
-        $stmt->execute([$nom, $email, $hash]);
-
-        $succes = "Inscription réussie. Tu peux maintenant te connecter.";
+    foreach (['nom' => 100, 'prenom' => 100, 'pseudo' => 50, 'email' => 255] as $champ => $max) {
+        if (preg_match_all('/./us', $valeurs[$champ]) > $max) {
+            $erreurs[] = "Le champ $champ est trop long.";
+        }
+    }
+    if (!filter_var($valeurs['email'], FILTER_VALIDATE_EMAIL)) {
+        $erreurs[] = "L'adresse email n'est pas valide.";
+    }
+    // PASSWORD_BCRYPT limite le mot de passe à 72 octets.
+    if (strlen($mdp) < 8 || strlen($mdp) > 72) {
+        $erreurs[] = 'Le mot de passe doit contenir entre 8 et 72 octets.';
+    }
+    if ($mdp !== $confirmation) {
+        $erreurs[] = 'Les mots de passe ne correspondent pas.';
+    }
+    if (!$erreurs) {
+        try {
+            $stmt = $pdo->prepare('INSERT INTO utilisateur (nom, prenom, pseudo, email, mot_de_passe) VALUES (:nom, :prenom, :pseudo, :email, :mot_de_passe)');
+            $stmt->execute($valeurs + ['mot_de_passe' => password_hash($mdp, PASSWORD_BCRYPT)]);
+            $_SESSION['inscription_succes'] = 'Inscription réussie. Tu peux maintenant te connecter.';
+            header('Location: signin.php', true, 303);
+            exit;
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23505') {
+                $erreurs[] = 'Ce pseudo ou cet email est déjà utilisé.';
+            } else {
+                error_log('Inscription : ' . $e->getMessage());
+                $erreurs[] = "L'inscription a échoué. Réessaie plus tard.";
+            }
+        }
     }
 }
+$succes = $_SESSION['inscription_succes'] ?? '';
+unset($_SESSION['inscription_succes']);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Inscription</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="conteneur">
-        <h1>Créer un compte</h1>
-
-        <?php if (!empty($erreurs)): ?>
-            <div class="messages erreur">
-                <ul>
-                    <?php foreach ($erreurs as $erreur): ?>
-                        <li><?= htmlspecialchars($erreur) ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($succes): ?>
-            <div class="messages succes"><?= htmlspecialchars($succes) ?></div>
-        <?php endif; ?>
-
-        <form method="POST" action="">
-            <label for="nom">Nom</label>
-            <input type="text" id="nom" name="nom" value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>" required>
-
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
-
-            <label for="mot_de_passe">Mot de passe</label>
-            <input type="password" id="mot_de_passe" name="mot_de_passe" required minlength="8">
-
-            <label for="confirmation">Confirmer le mot de passe</label>
-            <input type="password" id="confirmation" name="confirmation" required minlength="8">
-
-            <button type="submit">S'inscrire</button>
-        </form>
-
-        <p class="lien">Déjà un compte ? <a href="connexion.php">Se connecter</a></p>
-    </div>
-</body>
-</html>      
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Inscription — SIO Tournament</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="conteneur">
+<h1>Créer un compte</h1>
+<?php if ($erreurs): ?><div class="messages erreur" role="alert"><ul><?php foreach ($erreurs as $erreur): ?><li><?= h($erreur) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
+<?php if ($succes): ?><div class="messages succes" role="status"><?= h($succes) ?></div><?php endif; ?>
+<form method="post" action="signin.php">
+<input type="hidden" name="csrf" value="<?= h($_SESSION['csrf']) ?>">
+<label for="nom">Nom</label><input id="nom" name="nom" maxlength="100" value="<?= h($valeurs['nom']) ?>" autocomplete="family-name" required>
+<label for="prenom">Prénom</label><input id="prenom" name="prenom" maxlength="100" value="<?= h($valeurs['prenom']) ?>" autocomplete="given-name" required>
+<label for="pseudo">Pseudo</label><input id="pseudo" name="pseudo" maxlength="50" value="<?= h($valeurs['pseudo']) ?>" autocomplete="username" required>
+<label for="email">Email</label><input type="email" id="email" name="email" maxlength="255" value="<?= h($valeurs['email']) ?>" autocomplete="email" required>
+<label for="mot_de_passe">Mot de passe</label><input type="password" id="mot_de_passe" name="mot_de_passe" minlength="8" autocomplete="new-password" required>
+<label for="confirmation">Confirmer le mot de passe</label><input type="password" id="confirmation" name="confirmation" minlength="8" autocomplete="new-password" required>
+<button type="submit">S'inscrire</button>
+</form>
+<p>Déjà un compte ? <a href="login.php">Se connecter</a></p>
+<p><a href="index.php">Accueil</a></p>
+</div></body></html>
