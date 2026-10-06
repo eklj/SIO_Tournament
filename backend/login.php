@@ -1,12 +1,8 @@
 <?php
-session_start();
+require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/connexion.php';
-$_SESSION['csrf'] ??= bin2hex(random_bytes(32));
 $error = '';
 $pseudo = '';
-function h(string $valeur): string {
-    return htmlspecialchars($valeur, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pseudo = is_string($_POST['pseudo'] ?? null) ? trim($_POST['pseudo']) : '';
     $password = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
@@ -21,12 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($utilisateur && password_verify($password, $utilisateur['mot_de_passe'])) {
                 session_regenerate_id(true);
                 $_SESSION['id_utilisateur'] = (int) $utilisateur['id_utilisateur'];
-                // Compatibilité avec le test de connexion dans l'accueil actuel.
-                $_SESSION['id_joueur'] = (int) $utilisateur['id_utilisateur'];
                 $_SESSION['pseudo'] = $utilisateur['pseudo'];
                 $_SESSION['role_plateforme'] = $utilisateur['role_plateforme'];
                 $_SESSION['csrf'] = bin2hex(random_bytes(32));
-                header('Location: index.php', true, 303);
+                header('Location: ../frontend/index.html', true, 303);
                 exit;
             }
             $error = 'Pseudo ou mot de passe incorrect.';
@@ -49,5 +43,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <button type="submit">Se connecter</button>
 </form>
 <p>Pas de compte ? <a href="signin.php">Inscrivez-vous</a>.</p>
-<p><a href="index.php">Accueil</a></p>
+<p><a href="../frontend/index.html">Accueil</a></p>
 </div></body></html>
