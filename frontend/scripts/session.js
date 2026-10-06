@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         authButtonText.textContent = result.user.pseudo || "Compte";
+        authButton.style.setProperty("--background-color-hover", "var(--color-primary-dark)");
         authButton.href = "#";
         authButton.dataset.authenticated = "true";
 
