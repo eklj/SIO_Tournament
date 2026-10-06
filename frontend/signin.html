@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription — SIO Tournament</title>
+    <link rel="stylesheet" href="styles/auth.css">
+</head>
+<body class="auth-page">
+    <main class="auth-shell">
+        <a class="auth-back" href="index.html">← Retour à l'accueil</a>
+
+        <section class="auth-card">
+            <div class="auth-card-header">
+                <h1>Créer un compte</h1>
+            </div>
+
+            <div class="auth-card-body">
+                <p class="auth-subtitle">Crée ton profil pour rejoindre les tournois.</p>
+
+                <div id="signinMessage" class="auth-message" role="alert" aria-live="polite"></div>
+
+                <form id="signinForm" class="auth-form">
+                    <div class="auth-grid">
+                <div class="auth-field">
+                    <label for="nom">Nom</label>
+                    <input id="nom" name="nom" maxlength="100" autocomplete="family-name" required>
+                </div>
+
+                <div class="auth-field">
+                    <label for="prenom">Prénom</label>
+                    <input id="prenom" name="prenom" maxlength="100" autocomplete="given-name" required>
+                </div>
+
+                <div class="auth-field">
+                    <label for="pseudo">Pseudo</label>
+                    <input id="pseudo" name="pseudo" maxlength="50" autocomplete="username" required>
+                </div>
+
+                <div class="auth-field">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" maxlength="255" autocomplete="email" required>
+                </div>
+
+                <div class="auth-field">
+                    <label for="mot_de_passe">Mot de passe</label>
+                    <input type="password" id="mot_de_passe" name="mot_de_passe" minlength="8" autocomplete="new-password" required>
+                </div>
+
+                <div class="auth-field">
+                    <label for="confirmation">Confirmer le mot de passe</label>
+                    <input type="password" id="confirmation" name="confirmation" minlength="8" autocomplete="new-password" required>
+                </div>
+
+                    </div>
+
+                    <button id="signinSubmit" class="auth-submit" type="submit">
+                        S'inscrire
+                    </button>
+                </form>
+
+                <div class="auth-links">
+                    <span>Déjà un compte ?</span>
+                    <a href="login.html">Se connecter</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="scripts/signin.js" defer></script>
+</body>
+</html>
