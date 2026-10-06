@@ -844,3 +844,10 @@
                 width:135px;
             }
         }
+
+
+/* État temporaire du bouton utilisateur pendant la déconnexion */
+.primary-btn.loading{
+    opacity:.7;
+    pointer-events:none;
+}

@@ -27,13 +27,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!result.authenticated || !result.user) {
             authButtonText.textContent = "Sign In";
             authButton.href = "login.html";
+            authButton.dataset.authenticated = "false";
+            delete authButton.dataset.csrf;
             return;
         }
 
         authButtonText.textContent = result.user.pseudo || "Compte";
         authButton.href = "#";
         authButton.dataset.authenticated = "true";
-        authButton.setAttribute("title", `Connecté en tant que ${result.user.pseudo}`);
+
+        if (result.csrf) {
+            authButton.dataset.csrf = result.csrf;
+        }
+
+        authButton.setAttribute(
+            "title",
+            `Connecté en tant que ${result.user.pseudo} — cliquer pour se déconnecter`
+        );
     } catch (error) {
         console.debug("API session indisponible :", error);
     }
