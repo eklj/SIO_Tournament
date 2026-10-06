@@ -1,13 +1,9 @@
 <?php
-session_start();
+require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/connexion.php';
-$_SESSION['csrf'] ??= bin2hex(random_bytes(32));
 $erreurs = [];
 $succes = '';
 $valeurs = ['nom' => '', 'prenom' => '', 'pseudo' => '', 'email' => ''];
-function h(string $valeur): string {
-    return htmlspecialchars($valeur, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($valeurs as $champ => $_) {
         $valeurs[$champ] = is_string($_POST[$champ] ?? null) ? trim($_POST[$champ]) : '';
@@ -25,7 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     foreach (['nom' => 100, 'prenom' => 100, 'pseudo' => 50, 'email' => 255] as $champ => $max) {
-        if (preg_match_all('/./us', $valeurs[$champ]) > $max) {
+        $longueur = preg_match_all('/./us', $valeurs[$champ]);
+        if ($longueur === false) {
+            $erreurs[] = "Le champ $champ contient un texte invalide.";
+        } elseif ($longueur > $max) {
             $erreurs[] = "Le champ $champ est trop long.";
         }
     }
@@ -77,5 +76,5 @@ unset($_SESSION['inscription_succes']);
 <button type="submit">S'inscrire</button>
 </form>
 <p>Déjà un compte ? <a href="login.php">Se connecter</a></p>
-<p><a href="index.php">Accueil</a></p>
+<p><a href="../frontend/index.html">Accueil</a></p>
 </div></body></html>

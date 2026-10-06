@@ -22,8 +22,8 @@ Les étudiants utilisent souvent plusieurs réseaux sociaux et messageries pour 
 ## Technologies envisagées
 
 - **Frontend :** HTML5, CSS3 et JavaScript ;
-- **Backend :** PHP 8 avec une API REST ;
-- **Base de données :** MariaDB/MySQL ;
+- **Backend :** PHP 8 avec formulaires et sessions ;
+- **Base de données :** PostgreSQL ;
 - **Communication :** HTTP et JSON ;
 - **Serveur :** ... ;
 - **Gestion du code :** VSCode et GitHub.
@@ -35,3 +35,12 @@ en cour
 ## Documentation
 
 La documentation de conception est disponible dans le dossier `docs/`.
+
+## Lancement actuel
+
+Depuis la racine : `php -S localhost:8000`.
+
+Accueil : http://localhost:8000/frontend/index.html
+
+Voir `docs/07-organisation-actuelle.md` pour les fichiers actuels.
+L’API REST reste une évolution envisagée.
