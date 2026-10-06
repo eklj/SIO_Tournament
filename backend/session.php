@@ -1,16 +1,33 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/auth.php';
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
+
 try {
     $utilisateur = utilisateurConnecte();
+
     echo json_encode([
-        'connecte' => $utilisateur !== null,
-        'utilisateur' => $utilisateur ? ['pseudo' => $utilisateur['pseudo']] : null,
-        'csrf' => $_SESSION['csrf'],
-    ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-} catch (Throwable $e) {
-    error_log('État de session : ' . $e->getMessage());
+        'success' => true,
+        'authenticated' => $utilisateur !== null,
+        'user' => $utilisateur ? [
+            'id_utilisateur' => (int) $utilisateur['id_utilisateur'],
+            'pseudo' => $utilisateur['pseudo'],
+            'role_plateforme' => $utilisateur['role_plateforme']
+        ] : null,
+        'csrf' => $_SESSION['csrf']
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+} catch (Throwable $exception) {
+    error_log('API session : ' . $exception->getMessage());
+
     http_response_code(503);
-    echo json_encode(['erreur' => 'Service indisponible.']);
+
+    echo json_encode([
+        'success' => false,
+        'authenticated' => false,
+        'user' => null,
+        'message' => 'Service indisponible.'
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }

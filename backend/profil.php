@@ -1,18 +1,45 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/auth.php';
+
+header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
-$utilisateur = exigerConnexion();
-?>
-<!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mon profil — SIO Tournament</title></head>
-<body>
-<h1>Mon profil</h1>
-<dl>
-<?php foreach (['pseudo' => 'Pseudo', 'nom' => 'Nom', 'prenom' => 'Prénom', 'email' => 'Email', 'etablissement' => 'Établissement', 'option_sio' => 'Option SIO'] as $champ => $label): ?>
-<dt><?= h($label) ?></dt><dd><?= h((string) ($utilisateur[$champ] ?? 'Non renseigné')) ?></dd>
-<?php endforeach; ?>
-</dl>
-<p><a href="../frontend/index.html">Accueil</a></p>
-<form method="post" action="logout.php"><input type="hidden" name="csrf" value="<?= h($_SESSION['csrf']) ?>"><button type="submit">Déconnexion</button></form>
-</body></html>
+
+try {
+    $utilisateur = utilisateurConnecte();
+
+    if (!$utilisateur) {
+        http_response_code(401);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Authentification requise.'
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        exit;
+    }
+
+    echo json_encode([
+        'success' => true,
+        'user' => [
+            'id_utilisateur' => (int) $utilisateur['id_utilisateur'],
+            'nom' => $utilisateur['nom'],
+            'prenom' => $utilisateur['prenom'],
+            'pseudo' => $utilisateur['pseudo'],
+            'email' => $utilisateur['email'],
+            'role_plateforme' => $utilisateur['role_plateforme'],
+            'etablissement' => $utilisateur['etablissement'],
+            'option_sio' => $utilisateur['option_sio']
+        ]
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+} catch (Throwable $exception) {
+    error_log('API profil : ' . $exception->getMessage());
+
+    http_response_code(500);
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Une erreur interne est survenue.'
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}

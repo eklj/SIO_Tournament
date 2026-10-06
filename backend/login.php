@@ -6,8 +6,9 @@ header('Cache-Control: no-store');
 
 session_set_cookie_params([
     'httponly' => true,
-    'secure' => isset($_SERVER['HTTPS']),
-    'samesite' => 'Lax'
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    'samesite' => 'Lax',
+    'path' => '/'
 ]);
 
 session_start();
