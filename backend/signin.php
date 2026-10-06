@@ -3,7 +3,7 @@ session_start();
 require "connexion.php";
 
 $erreurs = [];
-$succes = "";
+$succes = "Inscription réussie. Tu peux maintenant te connecter.";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nom = trim($_POST["nom"]);
